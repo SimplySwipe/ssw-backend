@@ -15,6 +15,9 @@ func SetupRouter() *gin.Engine {
 
 		auth := api.Group("/auth")
 		auth.GET("/ping", handlers.Ping)
+		auth.POST("/oauth/google", handlers.GoogleOAuth)
+		auth.POST("/refresh", handlers.RefreshToken)
+		auth.POST("/logout", handlers.Logout)
 
 		user := api.Group("/me")
 		user.GET("/ping", handlers.Ping)
@@ -23,7 +26,7 @@ func SetupRouter() *gin.Engine {
 		jobs.GET("/ping", handlers.Ping)
 
 		internal := api.Group("/internal")
-		internal.GET("/ping", handlers.Ping)
+		internal.POST("/scraper/push", handlers.ScraperPush)
 	}
 
 	return router
