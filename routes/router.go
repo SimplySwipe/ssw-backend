@@ -1,32 +1,30 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"SimplySwipe/handlers"
+
+	"github.com/gin-gonic/gin"
+)
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	{
 		api := router.Group("/api")
-		api.GET("/ping", Ping)
+		api.GET("/ping", handlers.Ping)
 
 		auth := api.Group("/auth")
-		auth.GET("/ping", Ping)
+		auth.GET("/ping", handlers.Ping)
 
 		user := api.Group("/me")
-		user.GET("/ping", Ping)
+		user.GET("/ping", handlers.Ping)
 
 		jobs := api.Group("/jobs")
-		jobs.GET("/ping", Ping)
+		jobs.GET("/ping", handlers.Ping)
 
 		internal := api.Group("/internal")
-		internal.GET("/ping", Ping)
+		internal.GET("/ping", handlers.Ping)
 	}
 
 	return router
-}
-
-func Ping(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
 }
