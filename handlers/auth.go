@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/api/idtoken"
 )
 
@@ -78,32 +77,6 @@ func TestToken(c *gin.Context) {
 			"email": email,
 			"name":  name,
 		},
-	})
-}
-
-func ValidateToken(c *gin.Context) {
-	authHeader := c.GetHeader("Authorisation")
-	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
-		c.JSON(401, gin.H{"error": "Authorization header format must be Bearer {token}"})
-		return
-	}
-	tokenString := authHeader[7:]
-	var claims models.Claims
-	secret := os.Getenv("JWT_SECRET")
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
-	})
-	if err != nil || !token.Valid {
-		c.JSON(401, gin.H{"error": "Invalid or expired token!"})
-		return
-	}
-	c.JSON(200, gin.H{
-		"userID":   claims.UserID,
-		"email":    claims.Email,
-		"role":     claims.Role,
-		"audience": claims.Audience,
-		"issuer":   claims.Issuer,
-		"exp":      claims.ExpiresAt,
 	})
 }
 
