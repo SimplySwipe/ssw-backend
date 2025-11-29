@@ -1,5 +1,5 @@
 package models
 
 type GoogleOAuthRequest struct {
-	IDToken string `json:"idToken"`
+	IDToken string `json:"id_token"`
 }

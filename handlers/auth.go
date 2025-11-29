@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"SimplySwipe/db"
 	"SimplySwipe/models"
 	"SimplySwipe/utils"
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -29,16 +31,27 @@ func GoogleOAuth(c *gin.Context) {
 	issuer := os.Getenv("JWT_ISSUER")
 	role := "guest"
 
+	googleID := payload.Subject
 	email := payload.Claims["email"].(string)
 	name := payload.Claims["name"].(string)
-	userID := payload.Claims["sub"].(string)
 
-	accessToken, err := utils.GenerateJWT(userID, email, role, audience, issuer, time.Hour)
+	user, err := db.GetOrCreateUserByGoogleID(
+		c.Request.Context(),
+		db.Pool,
+		googleID,
+		email,
+		name,
+	)
+	if err != nil {
+		log.Println("error, failed to get or create user", err)
+	}
+
+	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, time.Hour)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate access token"})
 		return
 	}
-	refreshToken, err := utils.GenerateJWT(userID, email, role, audience, issuer, 24*7*time.Hour)
+	refreshToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, 24*7*time.Hour)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate access token"})
 		return
@@ -47,9 +60,9 @@ func GoogleOAuth(c *gin.Context) {
 		"accesToken":   accessToken,
 		"refreshToken": refreshToken,
 		"user": gin.H{
-			"id":    userID,
-			"email": email,
-			"name":  name,
+			"id":    user.ID,
+			"email": user.Email,
+			"name":  user.Name,
 		},
 	})
 
