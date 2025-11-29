@@ -2,6 +2,7 @@ package routes
 
 import (
 	"SimplySwipe/handlers"
+	"SimplySwipe/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,6 @@ func SetupRouter() *gin.Engine {
 		api.GET("/ping", handlers.Ping)
 
 		auth := api.Group("/auth")
-		auth.GET("/ping", handlers.Ping)
 		auth.POST("/oauth/google", handlers.GoogleOAuth)
 		auth.POST("/test-token", handlers.TestToken)
 
@@ -22,10 +22,10 @@ func SetupRouter() *gin.Engine {
 		auth.POST("/logout", handlers.Logout)
 
 		user := api.Group("/me")
-		user.GET("/ping", handlers.Ping)
+		user.Use(middleware.JWTAuth())
 
 		jobs := api.Group("/jobs")
-		jobs.GET("/ping", handlers.Ping)
+		jobs.Use(middleware.JWTAuth())
 
 		internal := api.Group("/internal")
 		internal.POST("/scraper/push", handlers.ScraperPush)
