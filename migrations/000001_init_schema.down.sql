@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS user_activity;
+DROP TABLE IF EXISTS applications;
+DROP TABLE IF EXISTS swipes;
+DROP TABLE IF EXISTS saved_jobs;
+DROP TABLE IF EXISTS jobs;
+DROP TABLE IF EXISTS user_preferences;
+DROP TABLE IF EXISTS users;
