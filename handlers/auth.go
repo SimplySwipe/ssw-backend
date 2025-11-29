@@ -34,6 +34,7 @@ func GoogleOAuth(c *gin.Context) {
 	googleID := payload.Subject
 	email := payload.Claims["email"].(string)
 	name := payload.Claims["name"].(string)
+	photoURL := payload.Claims["picture"].(string)
 
 	user, err := db.GetOrCreateUserByGoogleID(
 		c.Request.Context(),
@@ -41,6 +42,7 @@ func GoogleOAuth(c *gin.Context) {
 		googleID,
 		email,
 		name,
+		photoURL,
 	)
 	if err != nil {
 		log.Println("error, failed to get or create user", err)

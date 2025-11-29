@@ -33,7 +33,7 @@ func GetUserByID(ctx context.Context, db *pgxpool.Pool, userID string) (*models.
 	return &user, nil
 }
 
-func GetOrCreateUserByGoogleID(ctx context.Context, db *pgxpool.Pool, googleID, email, name string) (*models.User, error) {
+func GetOrCreateUserByGoogleID(ctx context.Context, db *pgxpool.Pool, googleID, email, name, photoURL string) (*models.User, error) {
 	const query = `
 	SELECT id, google_id, email, name, phone, photo_url, created_at
     FROM users
@@ -51,11 +51,11 @@ func GetOrCreateUserByGoogleID(ctx context.Context, db *pgxpool.Pool, googleID, 
 	)
 	if err == pgx.ErrNoRows {
 		const queryIn = `
-		INSERT INTO users (google_id, email, name) 
-		VALUES ($1, $2, $3)
+		INSERT INTO users (google_id, email, name, photo_url) 
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, google_id, email, name, phone, photo_url, created_at
 `
-		errIn := db.QueryRow(ctx, queryIn, googleID, email, name).Scan(
+		errIn := db.QueryRow(ctx, queryIn, googleID, email, name, photoURL).Scan(
 			&user.ID,
 			&user.GoogleID,
 			&user.Email,
