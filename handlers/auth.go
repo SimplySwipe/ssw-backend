@@ -31,10 +31,23 @@ func GoogleOAuth(c *gin.Context) {
 	issuer := os.Getenv("JWT_ISSUER")
 	role := "guest"
 
+	email := ""
+	if v, ok := payload.Claims["email"]; ok {
+		email, _ = v.(string)
+	}
+	name := ""
+	if v, ok := payload.Claims["name"]; ok {
+		name, _ = v.(string)
+	}
+	photoURL := ""
+	if v, ok := payload.Claims["picture"]; ok {
+		photoURL, _ = v.(string)
+	}
+
 	googleID := payload.Subject
-	email := payload.Claims["email"].(string)
-	name := payload.Claims["name"].(string)
-	photoURL := payload.Claims["picture"].(string)
+	// email := payload.Claims["email"].(string)
+	// name := payload.Claims["name"].(string)
+	// photoURL := payload.Claims["picture"].(string)
 
 	user, err := db.GetOrCreateUserByGoogleID(
 		c.Request.Context(),

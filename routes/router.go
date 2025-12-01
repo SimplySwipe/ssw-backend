@@ -9,6 +9,7 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
+	router.Use(middleware.RateLimitMiddleware())
 
 	{
 		api := router.Group("/api")
