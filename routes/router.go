@@ -17,7 +17,6 @@ func SetupRouter() *gin.Engine {
 
 		auth := api.Group("/auth")
 		auth.POST("/oauth/google", handlers.GoogleOAuth)
-		auth.POST("/test-token", handlers.TestToken)
 
 		auth.POST("/refresh", handlers.RefreshToken)
 		auth.POST("/logout", handlers.Logout)

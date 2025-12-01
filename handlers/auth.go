@@ -27,6 +27,26 @@ func GoogleOAuth(c *gin.Context) {
 		c.JSON(401, gin.H{"error": "Invalid Google ID token"})
 		return
 	}
+	if payload.Audience != googleClientID {
+		c.JSON(401, gin.H{"error": "Invalid token audience"})
+		return
+	}
+	if payload.Issuer != "https://accounts.google.com" && payload.Issuer != "accounts.google.com" {
+		c.JSON(401, gin.H{"error": "Invalid token issuer"})
+		return
+	}
+
+	emailVerified := false
+	if v, ok := payload.Claims["email_verified"]; ok {
+		if b, ok := v.(bool); ok {
+			emailVerified = b
+		}
+	}
+	if !emailVerified {
+		c.JSON(401, gin.H{"error": "Google account not verified"})
+		return
+	}
+
 	audience := os.Getenv("JWT_AUDIENCE")
 	issuer := os.Getenv("JWT_ISSUER")
 	role := "guest"
@@ -43,11 +63,11 @@ func GoogleOAuth(c *gin.Context) {
 	if v, ok := payload.Claims["picture"]; ok {
 		photoURL, _ = v.(string)
 	}
-
 	googleID := payload.Subject
 	// email := payload.Claims["email"].(string)
 	// name := payload.Claims["name"].(string)
 	// photoURL := payload.Claims["picture"].(string)
+	log.Printf("%#v", payload.Claims)
 
 	user, err := db.GetOrCreateUserByGoogleID(
 		c.Request.Context(),
@@ -59,6 +79,11 @@ func GoogleOAuth(c *gin.Context) {
 	)
 	if err != nil {
 		log.Println("error, failed to get or create user", err)
+		c.JSON(500, gin.H{"error": "Failed to get or creat user"})
+	}
+	if user == nil {
+		c.JSON(500, gin.H{"error": "User not found or created"})
+		return
 	}
 
 	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, time.Hour)
@@ -81,31 +106,6 @@ func GoogleOAuth(c *gin.Context) {
 		},
 	})
 
-}
-
-func TestToken(c *gin.Context) {
-
-	audience := os.Getenv("JWT_AUDIENCE")
-	issuer := os.Getenv("JWT_ISSUER")
-	role := "guest"
-
-	userID := "5"
-	email := "tian.istenic@gmail.com"
-	name := "tian"
-	accessToken, err := utils.GenerateJWT(userID, email, role, audience, issuer, time.Hour)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to generate access token"})
-		return
-	}
-	c.JSON(200, gin.H{
-		"accesToken":   accessToken,
-		"refreshToken": accessToken,
-		"user": gin.H{
-			"id":    userID,
-			"email": email,
-			"name":  name,
-		},
-	})
 }
 
 func RefreshToken(c *gin.Context) {
