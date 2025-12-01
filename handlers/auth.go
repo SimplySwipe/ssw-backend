@@ -86,19 +86,25 @@ func GoogleOAuth(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, time.Hour)
+	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, 60*15)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate access token"})
 		return
 	}
-	refreshToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, 24*7*time.Hour)
+	refreshToken, err := db.GenerateRefreshToken()
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to generate access token"})
+		c.JSON(500, gin.H{"error": "failed to generate the refresh token"})
 		return
 	}
+	_, err = db.InsertRefreshToken(c.Request.Context(), db.Pool, user.ID, refreshToken, time.Now().Add(24*7*time.Hour))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to store the refresh token"})
+		return
+	}
+	c.SetCookie("refresh_token", refreshToken, 7*24*3600, "/", "", true, true)
+
 	c.JSON(200, gin.H{
-		"accesToken":   accessToken,
-		"refreshToken": refreshToken,
+		"accesToken": accessToken,
 		"user": gin.H{
 			"id":    user.ID,
 			"email": user.Email,
@@ -109,7 +115,11 @@ func GoogleOAuth(c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "RefreshToken"})
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(401, gin.H{"error": "refresh token missing in cookie"})
+		return
+	}
 }
 
 func Logout(c *gin.Context) {

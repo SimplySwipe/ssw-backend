@@ -30,7 +30,11 @@ func SetupRouter() *gin.Engine {
 		jobs.Use(middleware.JWTAuth())
 
 		internal := api.Group("/internal")
-		internal.POST("/scraper/push", handlers.ScraperPush)
+		internal.Use(middleware.RequireAPIKey())
+		{
+
+			internal.POST("/scraper/push", handlers.ScraperPush)
+		}
 	}
 
 	return router

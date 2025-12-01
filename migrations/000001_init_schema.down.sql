@@ -5,3 +5,4 @@ DROP TABLE IF EXISTS saved_jobs;
 DROP TABLE IF EXISTS jobs;
 DROP TABLE IF EXISTS user_preferences;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS refresh_tokens;
