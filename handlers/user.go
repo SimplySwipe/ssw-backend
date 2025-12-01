@@ -3,30 +3,26 @@ package handlers
 import (
 	"SimplySwipe/db"
 	"SimplySwipe/models"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetUserProfile(c *gin.Context) {
-	claims, exist := c.Get("userClaims")
-	if !exist {
-		c.JSON(401, gin.H{"error": "Unauthorized!"})
-		return
-	}
-
-	userClaims, ok := claims.(models.Claims)
+	userClaims, ok := GetUserClaims(c)
 	if !ok {
-		c.JSON(401, gin.H{"error": "No claims"})
+		c.JSON(401, gin.H{"error": "unauthorized", "message": "Missing or invalid authentication claims"})
 		return
 	}
 	userID := userClaims.UserID
 	user, err := db.GetUserByID(c.Request.Context(), db.Pool, userID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Internal server error"})
+		log.Printf("[GetUserProfile] DB error: %v", err)
+		c.JSON(500, gin.H{"error": "internal_server_error", "message": "Could not retrieve user profile"})
 		return
 	}
 	if user == nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+		c.JSON(404, gin.H{"error": "not_found", "message": "User not found"})
 		return
 	}
 	c.JSON(200, user)
@@ -34,22 +30,16 @@ func GetUserProfile(c *gin.Context) {
 }
 
 func UpdateUserProfile(c *gin.Context) {
-	claims, exist := c.Get("userClaims")
-	if !exist {
-		c.JSON(401, gin.H{"error": "Unauthorized!"})
-		return
-	}
-
-	userClaims, ok := claims.(models.Claims)
+	userClaims, ok := GetUserClaims(c)
 	if !ok {
-		c.JSON(401, gin.H{"error": "No claims"})
+		c.JSON(401, gin.H{"error": "unauthorized", "message": "Missing or invalid authentication claims"})
 		return
 	}
 	userID := userClaims.UserID
 
 	var req models.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid input"})
+		c.JSON(400, gin.H{"error": "bad_request", "message": "Invalid input: " + err.Error()})
 		return
 	}
 
@@ -62,10 +52,12 @@ func UpdateUserProfile(c *gin.Context) {
 		req.PhotoURL,
 	)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update user"})
+		log.Printf("[UpdateUserProfile] DB error: %v", err)
+		c.JSON(500, gin.H{"error": "internal_server_error", "message": "Failed to update user profile"})
+		return
 	}
 	if updateUser == nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+		c.JSON(404, gin.H{"error": "not_found", "message": "User not found"})
 		return
 	}
 	c.JSON(200, updateUser)

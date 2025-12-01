@@ -13,7 +13,7 @@ type User struct {
 }
 
 type UpdateUserRequest struct {
-	Name     string  `json:"name"`
-	Phone    *string `json:"phone"`
-	PhotoURL *string `json:"photo_url"`
+	Name     string  `json:"name" binding:"required,min=2,max=50"`
+	Phone    *string `json:"phone" binding:"omitempty"`
+	PhotoURL *string `json:"photo_url" binding:"omitempty,url"`
 }
