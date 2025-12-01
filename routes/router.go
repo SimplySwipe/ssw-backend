@@ -24,6 +24,7 @@ func SetupRouter() *gin.Engine {
 		user := api.Group("/user")
 		user.Use(middleware.JWTAuth())
 		user.GET("/profile", handlers.GetUserProfile)
+		user.PUT("/profile", handlers.UpdateUserProfile)
 
 		jobs := api.Group("/jobs")
 		jobs.Use(middleware.JWTAuth())

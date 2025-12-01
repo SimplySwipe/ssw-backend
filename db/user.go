@@ -74,3 +74,29 @@ func GetOrCreateUserByGoogleID(ctx context.Context, db *pgxpool.Pool, googleID, 
 	}
 	return &user, nil
 }
+
+func UpdateUser(ctx context.Context, db *pgxpool.Pool, userID, name string, phone, photoURL *string) (*models.User, error) {
+	const query = `
+	UPDATE users
+	SET name = $1, phone = $2, photo_url = $3
+	WHERE id = $4
+	RETURNING id, google_id, email, name, phone, photo_url, created_at
+	`
+	var user models.User
+	err := db.QueryRow(ctx, query, name, phone, photoURL, userID).Scan(
+		&user.ID,
+		&user.GoogleID,
+		&user.Email,
+		&user.Name,
+		&user.Phone,
+		&user.PhotoURL,
+		&user.CreatedAt,
+	)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

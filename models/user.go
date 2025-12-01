@@ -11,3 +11,9 @@ type User struct {
 	PhotoURL  *string   `json:"photo_url,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type UpdateUserRequest struct {
+	Name     string  `json:"name"`
+	Phone    *string `json:"phone"`
+	PhotoURL *string `json:"photo_url"`
+}
