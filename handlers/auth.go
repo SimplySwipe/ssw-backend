@@ -86,7 +86,7 @@ func GoogleOAuth(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, 60*15)
+	accessToken, err := utils.GenerateJWT(user.ID, email, role, audience, issuer, time.Hour)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate access token"})
 		return
@@ -120,6 +120,7 @@ func RefreshToken(c *gin.Context) {
 		c.JSON(401, gin.H{"error": "refresh token missing in cookie"})
 		return
 	}
+
 }
 
 func Logout(c *gin.Context) {
