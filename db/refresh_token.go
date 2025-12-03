@@ -68,3 +68,23 @@ func GetRefreshToken(ctx context.Context, db *pgxpool.Pool, token string) (*mode
 	}
 	return &refreshToken, nil
 }
+
+func MarkRefreshTokenUsed(ctx context.Context, db *pgxpool.Pool, token string) error {
+	const query = `
+        UPDATE refresh_tokens
+        SET used = TRUE
+        WHERE token = $1
+    `
+	_, err := db.Exec(ctx, query, token)
+	return err
+}
+
+func RevokeRefreshToken(ctx context.Context, db *pgxpool.Pool, token string) error {
+	const query = `
+        UPDATE refresh_tokens
+        SET revoked = TRUE
+        WHERE token = $1
+    `
+	_, err := db.Exec(ctx, query, token)
+	return err
+}
