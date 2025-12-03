@@ -67,7 +67,6 @@ func GoogleOAuth(c *gin.Context) {
 	// email := payload.Claims["email"].(string)
 	// name := payload.Claims["name"].(string)
 	// photoURL := payload.Claims["picture"].(string)
-	log.Printf("%#v", payload.Claims)
 
 	user, err := db.GetOrCreateUserByGoogleID(
 		c.Request.Context(),
@@ -115,12 +114,34 @@ func GoogleOAuth(c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	refreshToken, err := c.Cookie("refresh_token")
+	cookieToken, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(401, gin.H{"error": "refresh token missing in cookie"})
 		return
 	}
-
+	refreshToken, err := db.GetRefreshToken(c.Request.Context(), db.Pool, cookieToken)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err})
+		return
+	}
+	if refreshToken.Token != cookieToken {
+		c.JSON(401, gin.H{"error": "refresh token missing or invalid"})
+		return
+	}
+	if refreshToken.Revoked {
+		c.JSON(401, gin.H{"error": "refresh token revoked"})
+		return
+	}
+	if refreshToken.Used {
+		c.JSON(401, gin.H{"error": "refresh token used"})
+		return
+	}
+	if refreshToken.ExpiresAt.Before(time.Now()) {
+		c.JSON(401, gin.H{"error": "refresh token expired"})
+		return
+	}
+	// generate new token
+	// mark old as used/revoked/expired
 }
 
 func Logout(c *gin.Context) {

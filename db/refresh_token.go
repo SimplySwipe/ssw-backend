@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -41,4 +42,29 @@ func InsertRefreshToken(ctx context.Context, db *pgxpool.Pool, userID, token str
 	}
 	return &refreshToken, nil
 
+}
+
+func GetRefreshToken(ctx context.Context, db *pgxpool.Pool, token string) (*models.RefreshToken, error) {
+	const query = `
+	SELECT * 
+	FROM refresh_tokens
+	WHERE token = $1
+	`
+	var refreshToken models.RefreshToken
+	err := db.QueryRow(ctx, query, token).Scan(
+		&refreshToken.ID,
+		&refreshToken.UserID,
+		&refreshToken.Token,
+		&refreshToken.ExpiresAt,
+		&refreshToken.Revoked,
+		&refreshToken.Used,
+		&refreshToken.CreatedAt,
+	)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &refreshToken, nil
 }
